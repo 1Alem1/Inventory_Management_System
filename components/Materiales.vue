@@ -25,7 +25,7 @@ function stock(stock) {
 </script>
 
 <template>
-<div class="container mt-5 pt-5">
+<div class="container mainContent">
 
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="mb-0">Gestión de Materiales</h3>
