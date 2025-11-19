@@ -1,4 +1,21 @@
 import { createApp } from 'vue'
-import App from './App.vue'
+import { createRouter, createWebHistory } from 'vue-router'
 
-createApp(App).mount('#app')
+import App from './App.vue'
+import Materiales from '../components/Materiales.vue'
+
+const router = createRouter({
+    history: createWebHistory(),
+    routes: [
+        {path: '/', redirect: '/app'},
+        {path: '/Materiales', component: Materiales},
+    ]
+})
+
+
+
+const app = createApp(App);
+
+app.use(router);
+
+app.mount('#app');
