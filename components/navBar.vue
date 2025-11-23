@@ -1,3 +1,29 @@
+<script setup>
+
+import { useRouter } from "vue-router";
+import { useAuthStore } from '../backend/authStore.js';
+
+
+
+const router = useRouter();
+const authStore = useAuthStore();
+
+async function handleLogout() {
+  await authStore.logout();
+  router.push('/login');
+}
+
+
+defineProps({
+  logged: Boolean,
+  rol: String,
+  cerrarSesion: Function,
+})
+
+</script>
+
+
+
 <template>
   <nav class="navbar navbar-expand-md backColor sticky-top">
     <div class="container-fluid">
@@ -27,7 +53,11 @@
           <li class="nav-item">
             <router-link class="nav-link mx-2" to="/movimientos">Movimientos</router-link>
           </li>
+          <li class="nav-item">
+          <button v-if="authStore.isAuthenticated" @click="handleLogout" class="btn btn-danger ms-3">Cerrar sesión</button>
+        </li>
         </ul>
+
       </div>
 
     </div>

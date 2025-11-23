@@ -121,6 +121,29 @@
 .captcha{
     border: 1px solid #ced4da;
     border-radius: 5px;
-    width: 100%;
-    height: auto;
+    width: auto;
+    height: 48px;
+}
+
+.btnReload{
+    height: 48px;
+    width: auto;
+}
+
+.cart-sticky {
+  position: sticky;
+  top: 80px;
+  z-index: 1020;
+}
+
+@media (max-width: 768px) {
+  .cart-sticky {
+    top: 70px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cart-sticky {
+    top: 60px;
+  }
 }

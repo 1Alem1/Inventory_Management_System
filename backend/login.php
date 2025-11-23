@@ -7,6 +7,10 @@ header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 
 require 'sanitizar.php';
 require 'conexion.php';
+
+
+    
+
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

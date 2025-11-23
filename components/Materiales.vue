@@ -35,6 +35,45 @@ function stock(stock) {
     </button>
   </div>
 
+<div class="pb-3">
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#entregaModal">
+        Cargar tecnico
+    </button>
+</div>
+
+  <div class="modal fade" id="entregaModal" tabindex="-1" aria-labelledby="entregaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="entregaModalLabel">Completá los datos!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+                <form method="POST" action="http://localhost/tpFinalProgra/backend/crearTecnico.php">
+
+                <div class="modal-body">
+                        <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input id="nombre" name="nombre" type="text" class="form-control" placeholder="Nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input id="email" name="email" type="email" class="form-control" placeholder="Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input id="password" name="password" type="password" class="form-control" placeholder="Contraseña" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
   <input
     v-model="filtro"
     class="form-control mb-3"
