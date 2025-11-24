@@ -25,7 +25,7 @@ const cartTotal = computed(() => {
 
 function stockClass(stock) {
   if (stock === 0) return "text-danger fw-bold";
-  if (stock < 5) return "text-warning fw-bold";
+  if (stock <= 5) return "text-warning fw-bold";
   return "text-success fw-bold";
 }
 
@@ -56,6 +56,7 @@ function addToCart(material) {
 function removeFromCart(index) {
   cart.value.splice(index, 1);
 }
+
 function updateQuantity(item, newQuantity) {
   if (newQuantity > 0 && newQuantity <= item.StockDisponible) {
     item.cantidad = newQuantity;
@@ -69,14 +70,39 @@ async function submitOrder() {
     alert("El carrito está vacío");
     return;
   }
-  console.log("Enviando pedido:", cart.value);
 
   const confirmed = confirm(`¿Confirmar pedido de ${cartTotal.value} items?`);
   
-  if (confirmed) {
-    // TODO: Implementar llamada al backend
-    alert("Pedido enviado exitosamente (funcionalidad pendiente)");
-    cart.value = []; // Limpiar carrito
+  if (!confirmed) return;
+  
+  try {
+const res = await fetch("http://localhost/tpFinalProgra/backend/pedidos.php", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  credentials: "include",
+  body: JSON.stringify({
+    items: cart.value
+  })
+});
+
+const text = await res.text();
+let data;
+try {
+  data = JSON.parse(text);
+} catch(err) {
+  console.error("JSON inválido:", text);
+  return;
+}
+
+if(data.success){
+  alert(data.message);
+  cart.value = [];
+} else {
+  alert("Error: " + (data.error || "No se pudo crear el pedido"));
+}
+  } catch (error) {
+    console.error("Error al enviar el pedido:", error);
+    alert("Error al enviar el pedido");
   }
 }
 
@@ -85,6 +111,7 @@ function clearCart() {
     cart.value = [];
   }
 }
+
 function isInCart(materialId) {
   return cart.value.some(item => item.IDRepuesto === materialId);
 }
@@ -112,6 +139,7 @@ onMounted(() => loadMaterials());
             {{ filteredMaterials.length }} materiales
           </span>
         </div>
+
         <div class="row mb-3">
           <div class="col-md-8">
             <input
@@ -129,6 +157,7 @@ onMounted(() => loadMaterials());
             </select>
           </div>
         </div>
+
         <div class="table-responsive">
           <table class="table table-hover align-middle">
             <thead class="table-light">
@@ -175,7 +204,7 @@ onMounted(() => loadMaterials());
                   <button
                     v-if="!isInCart(item.IDRepuesto)"
                     @click="addToCart(item)"
-                    class="btn btn-sm btn-primary-custom"
+                    class="btn btn-sm btn-primary"
                     :disabled="item.Stock === 0"
                   >
                     <i class="bi bi-cart-plus"></i>
@@ -196,6 +225,7 @@ onMounted(() => loadMaterials());
           </table>
         </div>
       </div>
+
       <div class="col-lg-4">
         <div class="card cart-sticky">
           <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">

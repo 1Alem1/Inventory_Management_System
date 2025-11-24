@@ -19,7 +19,7 @@ const filtrados = computed(() =>
 
 function stock(stock) {
   if (stock === 0) return "text-danger fw-bold";
-  if (stock < 5) return "text-warning fw-bold";
+  if (stock <= 5) return "text-warning fw-bold";
   return "text-success fw-bold";
 }
 </script>

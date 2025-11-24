@@ -147,3 +147,15 @@
     top: 60px;
   }
 }
+
+.pedidos{
+    margin: 1rem auto;
+    max-width: 90%;
+}
+
+.movimientos{
+    margin: 1rem auto;
+    max-width: 95%;
+}
+
+

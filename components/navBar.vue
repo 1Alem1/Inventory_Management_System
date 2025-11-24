@@ -42,15 +42,19 @@ defineProps({
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <router-link class="nav-link mx-2" to="/">Inicio</router-link>
-          </li>
-          <li class="nav-item">
             <router-link class="nav-link mx-2" to="/materiales">Materiales</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link mx-2" to="/pedidos">Pedidos</router-link>
+<router-link 
+  class="nav-link mx-2" 
+  :to="authStore.userRole && authStore.userRole.value === 'admin'
+      ? '/pedidos'
+      : '/pedidosTecnico'"
+>
+  Pedidos
+</router-link>
           </li>
-          <li class="nav-item">
+          <li class="nav-item" v-if="authStore.userRole.value === 'admin'">
             <router-link class="nav-link mx-2" to="/movimientos">Movimientos</router-link>
           </li>
           <li class="nav-item">

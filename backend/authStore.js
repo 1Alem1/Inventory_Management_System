@@ -1,4 +1,3 @@
-// stores/authStore.js
 import { ref } from 'vue';
 
 const isAuthenticated = ref(false);

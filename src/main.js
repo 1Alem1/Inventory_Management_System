@@ -6,6 +6,9 @@ import App from './App.vue'
 import materiales from '../components/materiales.vue'
 import login from '../components/login.vue'
 import materialesTecnico from '../components/materialesTecnico.vue'
+import pedidos from '../components/pedidos.vue'
+import movimientos from '../components/movimientos.vue'
+import pedidosTecnico from '../components/pedidosTecnico.vue'
 
 const routes = [
 
@@ -27,6 +30,21 @@ const routes = [
         path: '/materialesTecnico',
         component: materialesTecnico,
         meta: { requiresAuth: true, requiredRole: 'tecnico' }
+    },
+    {
+        path: '/pedidos',
+        component: pedidos,
+        meta: { requiresAuth: true, requiredRole: 'admin' }
+    },
+    {
+        path: '/movimientos',
+        component: movimientos,
+        meta: { requiresAuth: true, requiredRole: 'admin' }
+    },
+    {
+        path: '/pedidosTecnico',
+        component: pedidosTecnico,
+        meta: { requiresAuth: true, requiredRole: 'tecnico' }
     }
 ]
 
@@ -41,7 +59,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
-    if (authStore.isLoading) {
+    if (authStore.isLoading.value) {
         await authStore.checkSession();
     }
 
@@ -54,7 +72,7 @@ router.beforeEach(async (to, from, next) => {
             return;
         }
 
-        if (requiredRole && !(authStore.userRole && authStore.userRole.value === requiredRole)) {
+if (requiredRole && authStore.userRole.value !== requiredRole) {
             if (authStore.userRole && authStore.userRole.value === 'admin') {
                 next('/materiales');
             } else if (authStore.userRole && authStore.userRole.value === 'tecnico') {
