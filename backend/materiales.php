@@ -30,7 +30,6 @@ switch ($method) {
         break;
     }
 
-    // Listado completo
     $sql = "SELECT * FROM repuestos";
     $resultado = $conexion->query($sql);
 
@@ -83,7 +82,6 @@ switch ($method) {
         $stock      = intval($data['Stock']);
         $precio     = floatval($data['Precio']);
 
-        // Si trae imagen nueva, actualizarla
         if (isset($data['Imagen']) && $data['Imagen'] !== "") {
             $imagenBase64 = $conexion->real_escape_string($data['Imagen']);
             $sql = "UPDATE repuestos SET 
@@ -95,7 +93,6 @@ switch ($method) {
                         Imagen='$imagenBase64'
                     WHERE IDRepuesto = $id";
         } else {
-            // Si NO se cambia la imagen
             $sql = "UPDATE repuestos SET 
                         Nombre='$nombre', 
                         Categoria='$categoria', 
