@@ -4,113 +4,225 @@ import { ref, onMounted, computed } from "vue";
 const materiales = ref([]);
 const filtro = ref("");
 
+// Modal: add/edit
+const modalMode = ref("add"); // "add" | "edit"
+
+const form = ref({
+  IDRepuesto: null,
+  Nombre: "",
+  Categoria: "",
+  Stock: 0,
+  Precio: 0,
+  Imagen: "" // URL de la imagen
+});
+
+// ==============================
+// Cargar materiales
+// ==============================
 const cargarMateriales = async () => {
   const res = await fetch("http://localhost/tpFinalProgra/backend/materiales.php");
   materiales.value = await res.json();
 };
 
-onMounted(() => cargarMateriales());
+onMounted(cargarMateriales);
 
+// ==============================
+// Filtro
+// ==============================
 const filtrados = computed(() =>
-  materiales.value.filter(m =>
+  materiales.value.filter((m) =>
     m.Nombre.toLowerCase().includes(filtro.value.toLowerCase())
   )
 );
 
-function stock(stock) {
+// ==============================
+// Colores del stock
+// ==============================
+function stockClass(stock) {
   if (stock === 0) return "text-danger fw-bold";
   if (stock <= 5) return "text-warning fw-bold";
   return "text-success fw-bold";
 }
+
+// ==============================
+// MODAL: Agregar
+// ==============================
+function abrirModalAgregar() {
+  modalMode.value = "add";
+  form.value = {
+    IDRepuesto: null,
+    Nombre: "",
+    Categoria: "",
+    Stock: 0,
+    Precio: 0,
+    Imagen: ""
+  };
+
+  new bootstrap.Modal(document.getElementById("materialModal")).show();
+}
+
+// ==============================
+// MODAL: Editar
+// ==============================
+function abrirModalEditar(material) {
+  modalMode.value = "edit";
+  form.value = { ...material };
+  new bootstrap.Modal(document.getElementById("materialModal")).show();
+}
+
+// ==============================
+// Guardar
+// ==============================
+async function guardarMaterial() {
+  const base = "http://localhost/tpFinalProgra/backend/materiales.php";
+
+  const url = modalMode.value === "edit"
+    ? `${base}?id=${form.value.IDRepuesto}`
+    : base;
+
+  const method = modalMode.value === "edit" ? "PUT" : "POST";
+
+  const res = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(form.value)
+  });
+
+  const text = await res.text();
+  const data = JSON.parse(text);
+
+  if (data.success) {
+    await cargarMateriales();
+    bootstrap.Modal.getInstance(document.getElementById("materialModal")).hide();
+  } else {
+    alert("Error al guardar");
+  }
+}
+
+// ==============================
+// Eliminar
+// ==============================
+async function eliminarMaterial(id) {
+  const url = `http://localhost/tpFinalProgra/backend/materiales.php?id=${id}`;
+
+  await fetch(url, { method: "DELETE" });
+  await cargarMateriales();
+}
 </script>
 
+
+
 <template>
-<div class="container mainContent">
+  <div class="container mainContent">
 
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">Gestión de Materiales</h3>
-    <button class="btn btn-success me-2 d-flex align-items-center">
-        <i class="bi bi-plus-square-fill me-2"></i>
-        Agregar material
-    </button>
-  </div>
+    <!-- Título y botón Agregar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="mb-0">Gestión de Materiales</h3>
 
-<div class="pb-3">
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#entregaModal">
-        Cargar tecnico
-    </button>
-</div>
-
-  <div class="modal fade" id="entregaModal" tabindex="-1" aria-labelledby="entregaModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="entregaModalLabel">Completá los datos!</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-                <form method="POST" action="http://localhost/tpFinalProgra/backend/crearTecnico.php">
-
-                <div class="modal-body">
-                        <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre</label>
-                        <input id="nombre" name="nombre" type="text" class="form-control" placeholder="Nombre" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input id="email" name="email" type="email" class="form-control" placeholder="Email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Contraseña</label>
-                        <input id="password" name="password" type="password" class="form-control" placeholder="Contraseña" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Registrar</button>
-                </div>
-            </form>
-        </div>
+      <button class="btn btn-success" @click="abrirModalAgregar">
+        <i class="bi bi-plus-square-fill me-2"></i> Agregar material
+      </button>
     </div>
-</div>
 
+    <!-- Buscar -->
+    <input
+      v-model="filtro"
+      class="form-control mb-3"
+      placeholder="Buscar por nombre..."
+    />
 
-  <input
-    v-model="filtro"
-    class="form-control mb-3"
-    placeholder="Buscar por nombre..."
-  />
+    <!-- Tabla -->
+    <table class="table table-hover align-middle">
+      <thead class="thColor">
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Stock</th>
+          <th>Precio</th>
+          <th>Imagen</th>
+          <th style="width: 150px">Acciones</th>
+        </tr>
+      </thead>
 
-  <table class="table table-hover align-middle">
-    <thead class="thColor">
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Categoría</th>
-        <th>Stock</th>
-        <th>Precio</th>
-        <th style="width: 140px;">Acciones</th>
-      </tr>
-    </thead>
+      <tbody>
+        <tr v-for="m in filtrados" :key="m.IDRepuesto">
+          <td>{{ m.IDRepuesto }}</td>
+          <td>{{ m.Nombre }}</td>
+          <td>{{ m.Categoria }}</td>
+          <td :class="stockClass(m.Stock)">{{ m.Stock }}</td>
+          <td>${{ m.Precio }}</td>
 
-    <tbody>
-      <tr v-for="m in filtrados" :key="m.IDRepuesto">
-        <td>{{ m.IDRepuesto }}</td>
-        <td>{{ m.Nombre }}</td>
-        <td>{{ m.Categoria }}</td>
-        <td :class="stock(m.Stock)">{{ m.Stock }}</td>
-        <td>${{ m.Precio }}</td>
+          <!-- Imagen miniatura -->
+          <td>
+            <img v-if="m.Imagen" :src="m.Imagen" style="width:60px; height:auto; border-radius:5px;">
+          </td>
 
-        <td>
-          <button class="btn btn-sm btn-warning me-2">
-            <i class="bi bi-pencil-square"></i>
-          </button>
-          <button class="btn btn-sm btn-danger me-2">
-            <i class="bi bi-trash3-fill"></i>
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+          <td>
+            <button class="btn btn-sm btn-warning me-2" @click="abrirModalEditar(m)">
+              <i class="bi bi-pencil-square"></i>
+            </button>
 
+            <button class="btn btn-sm btn-danger" @click="eliminarMaterial(m.IDRepuesto)">
+              <i class="bi bi-trash3-fill"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Modal Agregar/Editar -->
+    <div class="modal fade" id="materialModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <h5 class="modal-title">
+              {{ modalMode === "add" ? "Agregar Material" : "Editar Material" }}
+            </h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+
+            <label class="form-label">Nombre</label>
+            <input class="form-control mb-2" v-model="form.Nombre" />
+
+            <label class="form-label">Categoría</label>
+            <input class="form-control mb-2" v-model="form.Categoria" />
+
+            <label class="form-label">Stock</label>
+            <input type="number" class="form-control mb-2" v-model="form.Stock" />
+
+            <label class="form-label">Precio</label>
+            <input type="number" class="form-control mb-2" v-model="form.Precio" />
+
+            <label class="form-label mt-2">URL de la Imagen</label>
+            <input
+              type="text"
+              class="form-control mb-2"
+              placeholder="https://ejemplo.com/imagen.png"
+              v-model="form.Imagen"
+            />
+
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarMaterial">
+              Guardar
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
 </template>
+
+<style scoped>
+.thColor {
+  background: #dce3f4;
+}
+</style>
