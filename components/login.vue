@@ -78,7 +78,7 @@ function reloadCaptcha() {
 
       <div class="logo-container mb-4">
         <img
-          src="https://ss-static-001.esmsv.com/r/content/host1/1d1918010a2113f1c8d64b7544232b3f/img/Frame%203.png"
+          src="../public/logo.png"
           alt="Logo"
           class="company-logo"
         />

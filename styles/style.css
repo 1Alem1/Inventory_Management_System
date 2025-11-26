@@ -4,7 +4,7 @@
 }
 
 .backColor {
-  background-color: #f8f9fa;
+  background-color: #F2F2F2;
 }
 
 .nav-link {
@@ -16,7 +16,7 @@
 }
 
 .nav-link:hover {
-  background-color: #008F45;
+  background-color: #22C1DB;
   color: #f8f9fa !important;
 }
 
@@ -64,7 +64,7 @@
 
 
 .thColor th {
-  background-color: #008F45;
+  background-color: #22C1DB;
   color: #f8f9fa;
 }
 
@@ -105,17 +105,17 @@
 }
 
 .text-primary-custom {
-  color: #008F45;
+  color: #22C1DB;
 }
 
 .btn-primary-custom {
-  background-color: #008F45;
+  background-color: #22C1DB;
   border: none;
   color: #f8f9fa;
 }
 
 .btn-primary-custom:hover {
-  background-color: #006e35;
+  background-color: #066979;
 }
 
 .captcha{
@@ -158,4 +158,9 @@
     max-width: 95%;
 }
 
-
+.router-link-exact-active {
+  background-color: #066979;
+  color: white !important;
+  border-radius: 6px;
+  padding: 6px 12px;
+}

@@ -30,7 +30,7 @@ defineProps({
 
       <a class="navbar-brand" href="#">
         <img
-          src="https://ss-static-001.esmsv.com/r/content/host1/1d1918010a2113f1c8d64b7544232b3f/img/Frame%203.png"
+          src="../public/logo.png"
           alt="Logo"
         />
       </a>
@@ -41,12 +41,18 @@ defineProps({
 
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <router-link class="nav-link mx-2" to="/materiales">Materiales</router-link>
-          </li>
+<router-link 
+  class="nav-link mx-2"
+  active-class="router-link-exact-active"
+  :to="authStore.userRole?.value === 'admin'
+        ? '/materiales'
+        : '/materialesTecnico'"
+>
+  Materiales
+</router-link>
 <li class="nav-item">
   <router-link 
-    class="nav-link mx-2" 
+    class="nav-link mx-2" active-class="router-link-exact-active"
     :to="authStore.userRole && authStore.userRole.value === 'admin'
         ? '/pedidos'
         : '/pedidosTecnico'"
@@ -55,7 +61,7 @@ defineProps({
   </router-link>
 </li>
 <li class="nav-item" v-if="authStore.userRole && authStore.userRole.value === 'admin'">
-  <router-link class="nav-link mx-2" to="/movimientos">Movimientos</router-link>
+  <router-link class="nav-link mx-2" to="/movimientos" active-class="router-link-exact-active">Movimientos</router-link>
 </li>
 <li class="nav-item">
   <button v-if="authStore.isAuthenticated" @click="handleLogout" class="btn btn-danger ms-3">Cerrar sesión</button>

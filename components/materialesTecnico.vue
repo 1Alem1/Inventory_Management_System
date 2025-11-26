@@ -204,7 +204,7 @@ onMounted(() => loadMaterials());
                   <button
                     v-if="!isInCart(item.IDRepuesto)"
                     @click="addToCart(item)"
-                    class="btn btn-sm btn-primary"
+                    class="btn btn-sm btn-success"
                     :disabled="item.Stock === 0"
                   >
                     <i class="bi bi-cart-plus"></i>
