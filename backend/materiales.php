@@ -57,53 +57,95 @@ switch ($method) {
         $desc       = $conexion->real_escape_string($data['Descripcion']);
         $stock      = intval($data['Stock']);
         $precio     = floatval($data['Precio']);
-        $imagenBase64 = $conexion->real_escape_string($data['Imagen']);
+        $imagen = $conexion->real_escape_string($data['Imagen']);
 
         $sql = "INSERT INTO repuestos (Nombre, Categoria, Descripcion, Stock, Precio, Imagen)
-                VALUES ('$nombre', '$categoria', '$desc', $stock, $precio, '$imagenBase64')";
+                VALUES ('$nombre', '$categoria', '$desc', $stock, $precio, '$imagen')";
 
-        echo json_encode(["success" => $conexion->query($sql)], JSON_UNESCAPED_UNICODE);
-        break;
+        $ok = $conexion->query($sql);
 
-    
-    case 'PUT':
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if (!isset($_GET['id'])) {
-            echo json_encode(["error" => "ID requerido"], JSON_UNESCAPED_UNICODE);
+        if (!$ok) {
+            echo json_encode(["error" => $conexion->error]);
             exit;
         }
 
-        $id = intval($_GET['id']);
+        $idRepuesto = $conexion->insert_id;
 
-        $nombre     = $conexion->real_escape_string($data['Nombre']);
-        $categoria  = $conexion->real_escape_string($data['Categoria']);
-        $desc       = $conexion->real_escape_string($data['Descripcion']);
-        $stock      = intval($data['Stock']);
-        $precio     = floatval($data['Precio']);
+        $admin = 1;
+        $tipo = 1; 
 
-        if (isset($data['Imagen']) && $data['Imagen'] !== "") {
-            $imagenBase64 = $conexion->real_escape_string($data['Imagen']);
-            $sql = "UPDATE repuestos SET 
-                        Nombre='$nombre', 
-                        Categoria='$categoria', 
-                        Descripcion='$desc',
-                        Stock=$stock, 
-                        Precio=$precio,
-                        Imagen='$imagenBase64'
-                    WHERE IDRepuesto = $id";
-        } else {
-            $sql = "UPDATE repuestos SET 
-                        Nombre='$nombre', 
-                        Categoria='$categoria', 
-                        Descripcion='$desc',
-                        Stock=$stock, 
-                        Precio=$precio
-                    WHERE IDRepuesto = $id";
+        $stmtMovimiento = $conexion->prepare("INSERT INTO movimientos (IDRepuesto, Tipo, Fecha, IDUser, IDPedido) VALUES (?, ?, NOW(), ?, NULL)");
+        $stmtMovimiento->bind_param("iii", $idRepuesto, $tipo, $admin);
+        
+        if (!$stmtMovimiento->execute()) {
+            echo json_encode(["error" => "Repuesto creado pero error al registrar movimiento: " . $stmtMovimiento->error]);
+            exit;
         }
 
-        echo json_encode(["success" => $conexion->query($sql)], JSON_UNESCAPED_UNICODE);
+        echo json_encode(["success" => true], JSON_UNESCAPED_UNICODE);
         break;
+
+    
+case 'PUT':
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!isset($_GET['id'])) {
+        echo json_encode(["error" => "ID requerido"], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $id = intval($_GET['id']);
+
+    $sqlStockActual = "SELECT Stock FROM repuestos WHERE IDRepuesto = $id";
+    $resultStock = $conexion->query($sqlStockActual);
+    $repuestoActual = $resultStock->fetch_assoc();
+    $stockAnterior = $repuestoActual['Stock'];
+
+    $nombre     = $conexion->real_escape_string($data['Nombre']);
+    $categoria  = $conexion->real_escape_string($data['Categoria']);
+    $desc       = $conexion->real_escape_string($data['Descripcion']);
+    $stockNuevo = intval($data['Stock']);
+    $precio     = floatval($data['Precio']);
+    $imagen     = $conexion->real_escape_string($data['Imagen']);
+
+    $conexion->begin_transaction();
+
+    try {
+        $sql = "UPDATE repuestos SET 
+                    Nombre='$nombre', 
+                    Categoria='$categoria', 
+                    Descripcion='$desc',
+                    Stock=$stockNuevo, 
+                    Precio=$precio,
+                    Imagen='$imagen'
+                WHERE IDRepuesto = $id";
+
+        $resultado = $conexion->query($sql);
+
+        if (!$resultado) {
+            throw new Exception($conexion->error);
+        }
+
+        if ($stockNuevo > $stockAnterior) {
+            $admin = 1; 
+            $tipo = 1; 
+
+            $stmtMovimiento = $conexion->prepare("INSERT INTO movimientos (IDRepuesto, Tipo, Fecha, IDUser, IDPedido) VALUES (?, ?, NOW(), ?, NULL)");
+            $stmtMovimiento->bind_param("iii", $id, $tipo, $admin);
+            
+            if (!$stmtMovimiento->execute()) {
+                throw new Exception("Error al registrar movimiento: " . $stmtMovimiento->error);
+            }
+        }
+
+        $conexion->commit();
+        echo json_encode(["success" => true], JSON_UNESCAPED_UNICODE);
+        
+    } catch (Exception $e) {
+        $conexion->rollback();
+        echo json_encode(["error" => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    }
+    break;
 
     
     case 'DELETE':
@@ -113,15 +155,31 @@ switch ($method) {
         }
 
         $id = intval($_GET['id']);
-        $sql = "DELETE FROM repuestos WHERE IDRepuesto = $id";
-
-        echo json_encode(["success" => $conexion->query($sql)], JSON_UNESCAPED_UNICODE);
-        break;
-
+    $conexion->begin_transaction();
     
-    case 'OPTIONS':
-        http_response_code(200);
-        break;
+    try {
+        $sqlMovimientos = "DELETE FROM movimientos WHERE IDRepuesto = $id";
+        $conexion->query($sqlMovimientos);
+        
+        $sqlItems = "DELETE FROM item WHERE IDRepuesto = $id";
+        $conexion->query($sqlItems);
+    
+        $sqlRepuesto = "DELETE FROM repuestos WHERE IDRepuesto = $id";
+        $resultRepuesto = $conexion->query($sqlRepuesto);
+        
+        if (!$resultRepuesto) {
+            throw new Exception($conexion->error);
+        }
+
+        $conexion->commit();
+        
+        echo json_encode(["success" => true], JSON_UNESCAPED_UNICODE);
+    } catch (Exception $e) {
+
+        $conexion->rollback();
+        echo json_encode(["error" => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    }
+    break;
 }
 
 $conexion->close();

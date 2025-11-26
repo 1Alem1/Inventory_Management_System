@@ -4,21 +4,18 @@ import { ref, onMounted, computed } from "vue";
 const materiales = ref([]);
 const filtro = ref("");
 
-// Modal: add/edit
-const modalMode = ref("add"); // "add" | "edit"
+const modalMode = ref("add");
 
 const form = ref({
   IDRepuesto: null,
   Nombre: "",
   Categoria: "",
+  Descripcion: "",
   Stock: 0,
   Precio: 0,
-  Imagen: "" // URL de la imagen
+  Imagen: ""
 });
 
-// ==============================
-// Cargar materiales
-// ==============================
 const cargarMateriales = async () => {
   const res = await fetch("http://localhost/tpFinalProgra/backend/materiales.php");
   materiales.value = await res.json();
@@ -26,33 +23,25 @@ const cargarMateriales = async () => {
 
 onMounted(cargarMateriales);
 
-// ==============================
-// Filtro
-// ==============================
 const filtrados = computed(() =>
   materiales.value.filter((m) =>
     m.Nombre.toLowerCase().includes(filtro.value.toLowerCase())
   )
 );
 
-// ==============================
-// Colores del stock
-// ==============================
 function stockClass(stock) {
   if (stock === 0) return "text-danger fw-bold";
   if (stock <= 5) return "text-warning fw-bold";
   return "text-success fw-bold";
 }
 
-// ==============================
-// MODAL: Agregar
-// ==============================
 function abrirModalAgregar() {
   modalMode.value = "add";
   form.value = {
     IDRepuesto: null,
     Nombre: "",
     Categoria: "",
+    Descripcion: "",
     Stock: 0,
     Precio: 0,
     Imagen: ""
@@ -61,18 +50,12 @@ function abrirModalAgregar() {
   new bootstrap.Modal(document.getElementById("materialModal")).show();
 }
 
-// ==============================
-// MODAL: Editar
-// ==============================
 function abrirModalEditar(material) {
   modalMode.value = "edit";
   form.value = { ...material };
   new bootstrap.Modal(document.getElementById("materialModal")).show();
 }
 
-// ==============================
-// Guardar
-// ==============================
 async function guardarMaterial() {
   const base = "http://localhost/tpFinalProgra/backend/materiales.php";
 
@@ -99,9 +82,6 @@ async function guardarMaterial() {
   }
 }
 
-// ==============================
-// Eliminar
-// ==============================
 async function eliminarMaterial(id) {
   const url = `http://localhost/tpFinalProgra/backend/materiales.php?id=${id}`;
 
@@ -115,7 +95,7 @@ async function eliminarMaterial(id) {
 <template>
   <div class="container mainContent">
 
-    <!-- Título y botón Agregar -->
+
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="mb-0">Gestión de Materiales</h3>
 
@@ -124,14 +104,12 @@ async function eliminarMaterial(id) {
       </button>
     </div>
 
-    <!-- Buscar -->
     <input
       v-model="filtro"
       class="form-control mb-3"
       placeholder="Buscar por nombre..."
     />
 
-    <!-- Tabla -->
     <table class="table table-hover align-middle">
       <thead class="thColor">
         <tr>
@@ -153,7 +131,6 @@ async function eliminarMaterial(id) {
           <td :class="stockClass(m.Stock)">{{ m.Stock }}</td>
           <td>${{ m.Precio }}</td>
 
-          <!-- Imagen miniatura -->
           <td>
             <img v-if="m.Imagen" :src="m.Imagen" style="width:60px; height:auto; border-radius:5px;">
           </td>
@@ -171,7 +148,6 @@ async function eliminarMaterial(id) {
       </tbody>
     </table>
 
-    <!-- Modal Agregar/Editar -->
     <div class="modal fade" id="materialModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -190,6 +166,9 @@ async function eliminarMaterial(id) {
 
             <label class="form-label">Categoría</label>
             <input class="form-control mb-2" v-model="form.Categoria" />
+
+            <label class="form-label">Descripción</label>
+            <textarea class="form-control mb-2" v-model="form.Descripcion"></textarea>
 
             <label class="form-label">Stock</label>
             <input type="number" class="form-control mb-2" v-model="form.Stock" />
@@ -222,7 +201,5 @@ async function eliminarMaterial(id) {
 </template>
 
 <style scoped>
-.thColor {
-  background: #dce3f4;
-}
+
 </style>

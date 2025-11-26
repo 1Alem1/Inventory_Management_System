@@ -58,7 +58,7 @@ if ($method === 'GET') {
         $stmt = $conexion->prepare($sql);
 
         if ($_SESSION['rol'] !== 'admin') {
-            $stmt->bind_param("ii", $idPedido, $idUser); // ambos enteros
+            $stmt->bind_param("ii", $idPedido, $idUser);
         } else {
             $stmt->bind_param("i", $idPedido);
         }
@@ -211,35 +211,42 @@ if ($method === 'PUT') {
 
     try {
         if ($nuevoEstado === 'Aprobado') {
-            $stmtItems = $conexion->prepare("SELECT IDRepuesto, Cantidad FROM item WHERE IDPedido = ?");
-            $stmtItems->bind_param("i", $idPedido);
-            $stmtItems->execute();
-            $resultItems = $stmtItems->get_result();
+    $stmtPedido = $conexion->prepare("SELECT IDUser FROM pedidos WHERE IDPedido = ?");
+    $stmtPedido->bind_param("i", $idPedido);
+    $stmtPedido->execute();
+    $resultPedido = $stmtPedido->get_result();
+    $pedidoData = $resultPedido->fetch_assoc();
+    $idUserPedido = $pedidoData['IDUser']; 
+    
+    $stmtItems = $conexion->prepare("SELECT IDRepuesto, Cantidad FROM item WHERE IDPedido = ?");
+    $stmtItems->bind_param("i", $idPedido);
+    $stmtItems->execute();
+    $resultItems = $stmtItems->get_result();
 
-            $stmtUpdateStock = $conexion->prepare("UPDATE repuestos SET Stock = Stock - ? WHERE IDRepuesto = ?");
-            $stmtMovimiento = $conexion->prepare("INSERT INTO movimientos (IDRepuesto, Tipo, Fecha, IDUser, IDPedido) VALUES (?, 'Salida', NOW(), ?, ?)");
+    $stmtUpdateStock = $conexion->prepare("UPDATE repuestos SET Stock = Stock - ? WHERE IDRepuesto = ?");
+    $stmtMovimiento = $conexion->prepare("INSERT INTO movimientos (IDRepuesto, Tipo, Fecha, IDUser, IDPedido) VALUES (?, 'Salida', NOW(), ?, ?)");
 
-            while ($item = $resultItems->fetch_assoc()) {
-                $idRepuesto = $item['IDRepuesto'];
-                $cantidad = $item['Cantidad'];
+    while ($item = $resultItems->fetch_assoc()) {
+        $idRepuesto = $item['IDRepuesto'];
+        $cantidad = $item['Cantidad'];
 
-                $stmtCheckStock = $conexion->prepare("SELECT Stock FROM repuestos WHERE IDRepuesto = ?");
-                $stmtCheckStock->bind_param("i", $idRepuesto);
-                $stmtCheckStock->execute();
-                $resultCheck = $stmtCheckStock->get_result();
-                $repuesto = $resultCheck->fetch_assoc();
+        $stmtCheckStock = $conexion->prepare("SELECT Stock FROM repuestos WHERE IDRepuesto = ?");
+        $stmtCheckStock->bind_param("i", $idRepuesto);
+        $stmtCheckStock->execute();
+        $resultCheck = $stmtCheckStock->get_result();
+        $repuesto = $resultCheck->fetch_assoc();
 
-                if (!$repuesto || $repuesto['Stock'] < $cantidad) {
-                    throw new Exception('Stock insuficiente para el repuesto ID: ' . $idRepuesto);
-                }
-
-                $stmtUpdateStock->bind_param("ii", $cantidad, $idRepuesto);
-                $stmtUpdateStock->execute();
-
-                $stmtMovimiento->bind_param("iii", $idRepuesto, $idUser, $idPedido);
-                $stmtMovimiento->execute();
-            }
+        if (!$repuesto || $repuesto['Stock'] < $cantidad) {
+            throw new Exception('Stock insuficiente para el repuesto ID: ' . $idRepuesto);
         }
+
+        $stmtUpdateStock->bind_param("ii", $cantidad, $idRepuesto);
+        $stmtUpdateStock->execute();
+
+        $stmtMovimiento->bind_param("iii", $idRepuesto, $idUserPedido, $idPedido);
+        $stmtMovimiento->execute();
+    }
+}
 
         $stmt = $conexion->prepare("UPDATE pedidos SET Estado = ? WHERE IDPedido = ?");
         $stmt->bind_param("si", $nuevoEstado, $idPedido);
