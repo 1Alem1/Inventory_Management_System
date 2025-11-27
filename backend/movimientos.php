@@ -9,6 +9,8 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 require 'conexion.php';
 session_start();
 
+date_default_timezone_set('America/Argentina/Buenos_Aires');
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
@@ -43,6 +45,11 @@ if ($method === 'GET') {
 
     if ($resultado && $resultado->num_rows > 0) {
         while ($fila = $resultado->fetch_assoc()) {
+            if (!empty($fila['Fecha'])) {
+                $fecha = new DateTime($fila['Fecha']);
+                $fecha->setTimezone(new DateTimeZone('America/Argentina/Buenos_Aires'));
+                $fila['Fecha'] = $fecha->format('Y-m-d H:i:s');
+            }
             $movimientos[] = $fila;
         }
     }

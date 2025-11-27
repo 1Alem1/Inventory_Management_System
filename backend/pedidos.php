@@ -210,7 +210,7 @@ if ($method === 'PUT') {
     $conexion->begin_transaction();
 
     try {
-        if ($nuevoEstado === 'Aprobado') {
+if ($nuevoEstado === 'Aprobado') {
     $stmtPedido = $conexion->prepare("SELECT IDUser FROM pedidos WHERE IDPedido = ?");
     $stmtPedido->bind_param("i", $idPedido);
     $stmtPedido->execute();
@@ -224,7 +224,6 @@ if ($method === 'PUT') {
     $resultItems = $stmtItems->get_result();
 
     $stmtUpdateStock = $conexion->prepare("UPDATE repuestos SET Stock = Stock - ? WHERE IDRepuesto = ?");
-    $stmtMovimiento = $conexion->prepare("INSERT INTO movimientos (IDRepuesto, Tipo, Fecha, IDUser, IDPedido) VALUES (?, 'Salida', NOW(), ?, ?)");
 
     while ($item = $resultItems->fetch_assoc()) {
         $idRepuesto = $item['IDRepuesto'];
@@ -242,10 +241,12 @@ if ($method === 'PUT') {
 
         $stmtUpdateStock->bind_param("ii", $cantidad, $idRepuesto);
         $stmtUpdateStock->execute();
-
-        $stmtMovimiento->bind_param("iii", $idRepuesto, $idUserPedido, $idPedido);
-        $stmtMovimiento->execute();
     }
+
+    $tipo = 0;
+    $stmtMovimiento = $conexion->prepare("INSERT INTO movimientos (IDRepuesto, Tipo, Fecha, IDUser, IDPedido) VALUES (NULL, ?, NOW(), ?, ?)");
+    $stmtMovimiento->bind_param("iii", $tipo, $idUserPedido, $idPedido);
+    $stmtMovimiento->execute();
 }
 
         $stmt = $conexion->prepare("UPDATE pedidos SET Estado = ? WHERE IDPedido = ?");

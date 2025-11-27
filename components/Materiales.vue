@@ -16,6 +16,12 @@ const form = ref({
   Imagen: ""
 });
 
+const formTecnico = ref({
+  nombre: "",
+  email: "",
+  password: ""
+});
+
 const cargarMateriales = async () => {
   const res = await fetch("http://localhost/tpFinalProgra/backend/materiales.php");
   materiales.value = await res.json();
@@ -30,8 +36,11 @@ const filtrados = computed(() =>
 );
 
 function stockClass(stock) {
-  if (stock === 0) return "text-danger fw-bold";
-  if (stock <= 5) return "text-warning fw-bold";
+  if (stock == 0) return "text-danger fw-bold";
+
+  else if (stock <= 5) return "text-warning fw-bold";
+
+  else
   return "text-success fw-bold";
 }
 
@@ -54,6 +63,15 @@ function abrirModalEditar(material) {
   modalMode.value = "edit";
   form.value = { ...material };
   new bootstrap.Modal(document.getElementById("materialModal")).show();
+}
+
+function abrirModalTecnico() {
+  formTecnico.value = {
+    nombre: "",
+    email: "",
+    password: ""
+  };
+  new bootstrap.Modal(document.getElementById("tecnicoModal")).show();
 }
 
 async function guardarMaterial() {
@@ -82,6 +100,33 @@ async function guardarMaterial() {
   }
 }
 
+async function guardarTecnico() {
+  const formData = new FormData();
+  formData.append('nombre', formTecnico.value.nombre);
+  formData.append('email', formTecnico.value.email);
+  formData.append('password', formTecnico.value.password);
+
+try {
+  const res = await fetch("http://localhost/tpFinalProgra/backend/crearTecnico.php", {
+    method: "POST",
+    body: formData
+  });
+
+  const data = await res.json();
+  
+  if (data.success) {
+    alert(data.message);
+    bootstrap.Modal.getInstance(document.getElementById("tecnicoModal")).hide();
+    formTecnico.value = { nombre: "", email: "", password: "" };
+  } else {
+    alert(data.error);
+  }
+} catch (error) {
+  alert("Error de conexión al crear técnico");
+  console.error(error);
+}
+}
+
 async function eliminarMaterial(id) {
   const url = `http://localhost/tpFinalProgra/backend/materiales.php?id=${id}`;
 
@@ -90,18 +135,20 @@ async function eliminarMaterial(id) {
 }
 </script>
 
-
-
 <template>
   <div class="container mainContent">
-
-
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="mb-0">Gestión de Materiales</h3>
 
-      <button class="btn btn-success" @click="abrirModalAgregar">
-        <i class="bi bi-plus-square-fill me-2"></i> Agregar material
-      </button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary" @click="abrirModalTecnico">
+          <i class="bi bi-person-plus-fill me-2"></i> Agregar Técnico
+        </button>
+        
+        <button class="btn btn-success" @click="abrirModalAgregar">
+          <i class="bi bi-plus-square-fill me-2"></i> Agregar Material
+        </button>
+      </div>
     </div>
 
     <input
@@ -151,7 +198,6 @@ async function eliminarMaterial(id) {
     <div class="modal fade" id="materialModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-
           <div class="modal-header">
             <h5 class="modal-title">
               {{ modalMode === "add" ? "Agregar Material" : "Editar Material" }}
@@ -160,7 +206,6 @@ async function eliminarMaterial(id) {
           </div>
 
           <div class="modal-body">
-
             <label class="form-label">Nombre</label>
             <input class="form-control mb-2" v-model="form.Nombre" />
 
@@ -183,7 +228,6 @@ async function eliminarMaterial(id) {
               placeholder="https://ejemplo.com/imagen.png"
               v-model="form.Imagen"
             />
-
           </div>
 
           <div class="modal-footer">
@@ -192,14 +236,71 @@ async function eliminarMaterial(id) {
               Guardar
             </button>
           </div>
-
         </div>
       </div>
     </div>
 
+    <div class="modal fade" id="tecnicoModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="bi bi-person-plus-fill me-2"></i> Agregar Nuevo Técnico
+            </h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Nombre Completo</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                v-model="formTecnico.nombre"
+                placeholder="Juan Pérez"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input 
+                type="email" 
+                class="form-control" 
+                v-model="formTecnico.email"
+                placeholder="tecnico@ejemplo.com"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Contraseña</label>
+              <input 
+                type="password" 
+                class="form-control" 
+                v-model="formTecnico.password"
+                placeholder="Mínimo 6 caracteres"
+                required
+              />
+            </div>
+
+            <div class="alert alert-info mb-0">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              El técnico podrá acceder con estas credenciales.
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarTecnico">
+              <i class="bi bi-save-fill me-2"></i> Crear Técnico
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-
 </style>

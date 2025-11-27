@@ -164,3 +164,18 @@
   border-radius: 6px;
   padding: 6px 12px;
 }
+
+.pedido-link {
+  color: #066979;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+  border: 1px solid #000;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: #dee2e6;
+}
+
+.pedido-link:hover {
+  color: #022855;
+}

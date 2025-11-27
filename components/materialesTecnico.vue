@@ -24,8 +24,10 @@ const cartTotal = computed(() => {
 });
 
 function stockClass(stock) {
-  if (stock === 0) return "text-danger fw-bold";
-  if (stock <= 5) return "text-warning fw-bold";
+  if (stock == 0) return "text-danger fw-bold";
+
+  else if (stock <= 5) return "text-warning fw-bold";
+  else
   return "text-success fw-bold";
 }
 
